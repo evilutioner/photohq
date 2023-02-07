@@ -30,14 +30,22 @@ struct HomeView: View {
                 .padding()
                 .navigationBarItems(
                     leading: (
-                        Button(
-                            action: { selectPhoto = true},
-                            label: { Text("Select Photo")
-                                    .fontWeight(.medium)
-                            }
-                        )
-                        .disabled(viewModel.isOptimizing)
-                        .padding()
+                        HStack {
+                            Button(
+                                action: { selectPhoto = true},
+                                label: { Text("Select Photo")
+                                        .fontWeight(.medium)
+                                }
+                            )
+                            .disabled(viewModel.isOptimizing)
+                            .padding()
+                            Button(
+                                action: { viewModel.mlType.next() },
+                                label: {  Text(viewModel.mlTypeName)
+                                        .fontWeight(.medium)
+                                }
+                            )
+                        }
                     ),trailing: (
                         Button(
                             action: {

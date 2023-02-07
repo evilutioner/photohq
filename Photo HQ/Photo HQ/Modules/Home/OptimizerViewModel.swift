@@ -24,6 +24,15 @@ class OptimizerViewModel: NSObject, ObservableObject {
         }
     }
     
+    @Published var mlTypeName: String = ModelTypes.default.rawValue
+    
+    var mlType: ModelTypes = .default {
+        didSet {
+            mlTypeName = mlType.rawValue
+            visionRequest = makeVisionRequest()
+        }
+    }
+    
     let configuration = MLModelConfiguration()
     var imageCropAndScaleOption: VNImageCropAndScaleOption = .scaleFill
     var originalImageRatio: CGSize = .zero
@@ -32,12 +41,32 @@ class OptimizerViewModel: NSObject, ObservableObject {
     
     // MARK: - Image Results
     
-    lazy var visionRequest: VNCoreMLRequest = {
+    lazy var visionRequest = makeVisionRequest()
+    
+    func makeMLModel() throws -> MLModel {
+        switch mlType {
+        case .rrdn512:
+            return try rrdn512(configuration: configuration).model
+        case .SRGAN:
+            return try SRGAN(configuration: configuration).model
+        case .SRResNet:
+            return try SRResNet(configuration: configuration).model
+        case .Realesgan512:
+            return try Realesrgan512(configuration: configuration).model
+        }
+    }
+    
+    func makeVisionRequest() -> VNCoreMLRequest {
         do {
-            let visionModel = try VNCoreMLModel(for: Realesrgan512(configuration: configuration).model)
+            let visionModel = try VNCoreMLModel(for: makeMLModel())
             
             let request = VNCoreMLRequest(model: visionModel, completionHandler: { request, error in
                 // I take the main thread again after getting a result or an error. The Cacao way.
+                
+                if let error {
+                    print("core ml request error: \(error)")
+                }
+                
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self else { return }
                     
