@@ -111,7 +111,10 @@ class OptimizerViewModel: NSObject, ObservableObject {
     // MARK: - Image Results Resize
     
     func resizeImageProportions(image: UIImage) {
-        guard let ratio = Array(imageRatio.keys).first, let value = imageRatio[ratio] else { return }
+        guard let ratio = Array(imageRatio.keys).first, let value = imageRatio[ratio] else {
+            convertedImage = image
+            return
+        }
         switch ratio {
         case .width:
             let width = image.size.width
