@@ -59,16 +59,22 @@ class OptimizerViewModel: NSObject, ObservableObject {
             })
             
             request.imageCropAndScaleOption = imageCropAndScaleOption
+            
+            print("switched to ml \(mlType.rawValue)")
+            
             return request
         } catch {
             fatalError("Failed to create VNCoreMLModel: \(error)")
         }
-    }()
+    }
     
     // MARK: Image Optimization
     
     func optimizeImage(_ image: UIImage) {
+        guard let image = image.convertToDispayP3ColorSpaceIfNeed() else { return }
+
         guard let ciImage = CIImage(image: image) else { return }
+        
         setImageProportions(for: image)
         isOptimizing = true
         let orientation = CGImagePropertyOrientation(image.imageOrientation)
@@ -77,8 +83,10 @@ class OptimizerViewModel: NSObject, ObservableObject {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
             let handler = VNImageRequestHandler(ciImage: ciImage, orientation: orientation)
+            
             do {
                 try handler.perform([self.visionRequest])
+                print("vision Request done")
                 
             } catch {
                 self.alertMessage = "Failed to perform prediction: \(error)"
